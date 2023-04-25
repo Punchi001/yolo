@@ -1,21 +1,53 @@
-version: '3.9'
+version: '3'
 
 services:
   client:
-    build: ./client
+    container_name: yolo-client-1
+    image: yolo_myclient:1.0.1
     ports:
-      - "3000:3000"
-    volumes:
-      - ./client:/app
-      - /app/node_modules
-    depends_on:
-      - backend
-
+    - 3000:3000
+    networks:
+      frontend-net:
   backend:
-    build: ./backend
+    container_name: yolo-backend-1
+    image: yolo_mybackend:1.0.0
     ports:
-      - "5000:5000"
+    - 5000:5000
+    environment:
+      PORT: 5000
+      MONGODB_URI: ${MONGODB_URI}
+    networks:
+      backend-net:
+      frontend-net:
+    depends_on:
+      - database
+    stdin_open: true
+    env_file:
+      - ./backend/.env
+  database:
+    container_name: back-end_database
+    ports:
+      - 27017:27017
+    image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: backend
+      MONGO_INITDB_ROOT_PASSWORD: backend
+    networks:
+      backend-net:
     volumes:
-      - ./backend:/app
-      - ./backend/.env:/app/.env
-      - /app/node_modules
+      - backend_volume:/data/db
+
+networks:
+  backend-net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.100.0.0/16
+  frontend-net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.51.0.0/16
+
+volumes:
+  backend_volume:

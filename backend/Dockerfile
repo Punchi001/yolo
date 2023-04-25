@@ -1,5 +1,5 @@
 # Use an official Node.js runtime as a parent image
-FROM node:18-alpine
+FROM node:14.5.0-alpine
 
 # Set the working directory to /app
 WORKDIR /app
@@ -7,17 +7,14 @@ WORKDIR /app
 # Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
 
-# Install app dependencies
-RUN npm install
+# Install app dependencies,production dependencies and not the development dependencies, which will further reduce the size of the image.
+RUN npm install --only=prod
 
 # Copy the rest of the application code to the working directory
 COPY . .
 
-# Copy .env file to the working directory
-COPY .env ./
-
 # Expose the port on which the app will run
-EXPOSE 5000
+EXPOSE 3000
 
-# Start the Node.js app
+# Start the React app
 CMD ["npm", "start"]
