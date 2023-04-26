@@ -3,7 +3,7 @@ version: '3'
 services:
   client:
     container_name: yolo-client-1
-    image: yolo_myclient:1.0.1
+    image: yolo_client:1.0.0
     ports:
     - 3000:3000
     networks:
