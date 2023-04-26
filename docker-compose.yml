@@ -1,53 +1,36 @@
-version: '3'
+version: '3.9'
 
 services:
   client:
-    container_name: yolo-client-1
-    image: yolo_client:1.0.0
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    image: yolo-client:1.0.0
     ports:
-    - 3000:3000
-    networks:
-      frontend-net:
-  backend:
-    container_name: yolo-backend-1
-    image: yolo_mybackend:1.0.0
-    ports:
-    - 5000:5000
-    environment:
-      PORT: 5000
-      MONGODB_URI: ${MONGODB_URI}
-    networks:
-      backend-net:
-      frontend-net:
-    depends_on:
-      - database
-    stdin_open: true
-    env_file:
-      - ./backend/.env
-  database:
-    container_name: back-end_database
-    ports:
-      - 27017:27017
-    image: mongo
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: backend
-      MONGO_INITDB_ROOT_PASSWORD: backend
-    networks:
-      backend-net:
+      - "3000:3000"
     volumes:
-      - backend_volume:/data/db
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - my-network
+    mem_limit: 512m # increase memory limit to 512mb
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: yolo-backend:1.0.0
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - ./backend/.env:/app/.env
+      - /app/node_modules
+    networks:
+      - my-network
 
 networks:
-  backend-net:
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.100.0.0/16
-  frontend-net:
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.51.0.0/16
-
-volumes:
-  backend_volume:
+  my-network:
+    driver: bridge
